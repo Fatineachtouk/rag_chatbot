@@ -1,0 +1,10 @@
+langchain
+flask
+flask-socketio
+eventlet
+langchain-community
+sentence-transformers
+python-dotenv
+ollama
+torch
+chromadb
