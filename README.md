@@ -106,7 +106,7 @@ To change the file IDs that can be retrieved, go to the **chat.py** file. In lin
 The modification of the following parameters can be done in the .env file:
 
 - **CHUNK_SIZE**: The maximum lingth of characters per chunk.
-- **CHUNK_OVERLAP**: 
+- **CHUNK_OVERLAP**: The number of characters or tokens that are repeated between consecutive text chunks, so the model can understand the full meaning.
 - **TOP_K**: The number of docs to retrieve in similarity search so that the LLM generates an answer based on them.
 - **MAX_NEW_TOKENS**: Number of tokens the model will generate in response.
 - **TEMPERATURE**: Controls randomness in text generation. The higher it is the more the answer is creative and random. In this case it's better to keep a low value for more confidence.
