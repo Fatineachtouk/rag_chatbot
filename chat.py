@@ -4,9 +4,6 @@ import socketio
 from flask import Flask
 from ragg import answer_generation_stream, get_device, embedding
 
-#The list of accessible file IDs
-file_ids = ["002", "005", "004",'001']
-
 app = Flask(__name__)
 sio = socketio.Server(cors_allowed_origins='*')
 app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
@@ -24,6 +21,8 @@ def ask(sid, data):
    print(f"Received question from {sid}: {data}")
    
    question = data.get("question") or data.get("query", "")
+   file_ids = data.get("file_ids", [])  # Get accessible file_ids from the request
+   
    if not question.strip():
        sio.emit("stream_char", {"char": "No question provided."}, to=sid)
        return
@@ -33,22 +32,21 @@ def ask(sid, data):
        
        tokens = list(answer_generation_stream(
            query=question,
-           accessible_file_ids=file_ids
+           accessible_file_ids=["002", "005", "004"] # Accessible file ids
        ))
        
-       # Last item is the file_ids array
-       used_file_ids = tokens[-1] if isinstance(tokens[-1], list) else []
+       # Last item is the metadata array
+       used_metadata = tokens[-1] if isinstance(tokens[-1], list) else []
        
-       
-    # Print the used file IDs
-       print(f"Used file IDs for this response: {used_file_ids}")
+       # Print the used metadata
+       print(f"Used metadata for this response: {used_metadata}")
    
-       # Stream all tokens except the last one (which is file_ids)
+       # Stream all tokens except the last one (which is metadata)
        for token in tokens[:-1]:
            sio.emit("stream_char", {"char": token}, to=sid)
            eventlet.sleep(0)
        
-       sio.emit("stream_end", {"file_ids": used_file_ids}, to=sid)
+       sio.emit("stream_end", {"metadata": used_metadata}, to=sid)
        
    except Exception as e:
        error_msg = f"Error: {str(e)}"

@@ -58,12 +58,22 @@ embedding_model = embedding(device)
 
 def ocr_to_chunks(ocr_output):
     content = ocr_output.get("content", "")
-    file_id = ocr_output.get("file_id","")
+    file_id = ocr_output.get("file_id", "")
+    metadata_input = ocr_output.get("metadata", [])  # list of dicts
+    
     if not content:
         return []
     
+    meta_dict = {"file_id": file_id}
+    #Creating a dictionary for metadata
+    for item in metadata_input:
+        field = item.get("fieldName")
+        value = item.get("value")
+        if field and value is not None:
+            meta_dict[field] = value
+    
     texts = splitter.split_text(content)
-    return [Document(page_content=chunk, metadata={"file_id": file_id}) for chunk in texts]
+    return [Document(page_content=chunk, metadata=meta_dict) for chunk in texts]
 
 def store_to_chroma(documents):
     # Create a persistent Chroma DB- Storing locally
@@ -117,7 +127,7 @@ def answer_generation_stream(query, accessible_file_ids):
             query, k=top_k, filter={"file_id": {"$in": accessible_file_ids}}
         )
     except:
-        try:
+        try:#Creating the DB if not found
             docs = vectorstore.similarity_search(query, k=top_k, filter={"file_id": {"$in": accessible_file_ids}})
             results = [(doc, 1.0) for doc in docs]
         except:
@@ -128,8 +138,12 @@ def answer_generation_stream(query, accessible_file_ids):
         yield "No relevant documents found."
         return
 
-    # Extract file_ids from results
-    used_file_ids = list(set([doc.metadata.get("file_id") for doc, score in results if doc.metadata.get("file_id")]))
+    # Extract metadata from results (file_id and all metadata fields)
+    used_metadata = []
+    for doc, score in results:
+        doc_metadata = doc.metadata.copy()  # Get the entire metadata dictionary
+        if doc_metadata not in used_metadata:
+            used_metadata.append(doc_metadata)
 
     # Build context from retrieved chunks
     context = "\n\n".join([
@@ -205,9 +219,5 @@ Answer precisely:""")
         if chunk['response']:
             yield chunk['response']
     
-    # Return used file_ids as the last item
-    yield used_file_ids
-
-
-
-
+    # Return used metadata as the last item
+    yield used_metadata
