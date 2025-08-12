@@ -8,7 +8,8 @@ This is a RAG system designed to answer the user based on the text extracted via
 
 Brief explanation of the files:  
 - **ragg.py**: All the functions used in storing, embedding, retrieving, and generating the answer.  
-- **store_app.py**: The API (POST) that stores documents with their embeddings in Chroma DB.  
+- **store_app.py**: The API (POST) that stores documents with their embeddings in Chroma DB.
+- **delete_app.py**: The API that deletes a file(given the file_id) from the ChromaDB
 - **chat.py**: The socket.  
 - **evaluation**: Evaluating the model performance using ragas, here are the metrics used and the scores:  
   - Answer Correctness (using the right facts): 0.943  
@@ -94,13 +95,33 @@ the `chunks_stored` is the number of chunks made out of the given document.
 
 ## Running the socket
 In the terminal and while the environment is activated, run :
-```python
+```bash
 python chat.py
 ```
 The socket will be running on port :5001,the full URL : http://localhost:5001
 
 ### Modifying the accessible File_ids
 To change the file IDs that can be retrieved, go to the **chat.py** file. In line 8, you'll find the `file_ids` variable that you can modify.
+
+## Deleting a file from the DB
+In the activated terminal, run the following:
+```bash
+python delete_app.py
+```
+The API will be running on http://127.0.0.1:5050/delete_file
+### The input of the API :
+```json
+{ "file_id": "000" }
+```
+### The output :
+```json
+{
+    "deleted_ids": [
+        "82cd714a-d068-4657-8734-25e005336aa2"
+    ],
+    "message": "Documents deleted successfully"
+}
+```
 
 ## Paramenters that can be modified
 The modification of the following parameters can be done in the .env file:
